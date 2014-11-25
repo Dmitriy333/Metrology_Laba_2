@@ -2,7 +2,7 @@ program FeyverkFirework;
 
 {$R+}
 
-//uses
+uses
   Crt, Graph;
 
 var
@@ -39,7 +39,83 @@ begin
         FY[J] := FY[J] - DY[J];
         DY[J] := DY[J] - 0.2;
       end;
-    //K := K + 1;
+    K := K + 1;
     Delay(10); { This was not in the original. }
   Until Keypressed or (K > 50);
 end;
+
+procedure ShootFireWork;
+
+begin
+  { Delay (1000); }
+  Randomize;
+  T := Random / 2 - 0.25 + Pi/2;
+  X := XStart;
+  Y := YStart;
+  R := 20;
+  I := 0;
+  Repeat
+    Inc (I);
+    XX[I] := Round(X);
+    YY[I] := Round(Y);
+    CC[I] := GetPixel (XX[I],YY[I]);
+    If I > 1 then
+    begin
+      If (XX[I] = XX[I-1]) and (YY[I] = YY[I-1]) then 
+      begin
+      	If XX[I] > 1 then
+      	begin
+     	 CC[I] := CC[I-1];
+     	 YY[I] := Round(Y);
+     	end;
+      end;
+    end;
+    PutPixel (XX[I],YY[I],Random(GetMaxColor+1)); 
+    If I > 5 then
+    begin
+      PutPixel (XX[I-5],YY[I-5],CC[I-5]);
+    end;
+    X := X + Cos(T)*R;
+    Y := Y - Sin(T)*R;
+    If T > Pi/2 then
+    begin
+      T := T + 0.02
+      R := R * 0.93;
+    end
+    else
+    begin
+      R := R / 0.93;
+      T := T - 0.02;
+    end;
+    R := R * 0.93;
+    Delay (20);
+  Until KeyPressed or (T < 0) or (T > Pi);
+
+  For J := I-5 to I do
+
+     PutPixel (XX[J],YY[J],CC[J]);
+{    ch := readkey; }
+  Explode (1);
+  Explode (0);
+end;
+
+begin
+  GraphDriver := Detect;
+  InitGraph (GraphDriver, GraphMode, '..');
+  ErrorCode := GraphResult;
+  If ErrorCode <> grOk then
+    begin
+      Writeln ('Graphics Error: ',GraphErrorMsg(ErrorCode));
+      Halt;
+    end;
+  SetColor (GetMaxColor);
+  XStart := GetMaxX div 2;
+  YStart := GetMaxY - 20;
+
+  Repeat
+    ShootFireWork;
+  Until Keypressed;
+  Ch := ReadKey;
+ClearDevice;
+CloseGraph;
+end.
